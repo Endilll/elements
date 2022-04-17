@@ -214,14 +214,39 @@ endif()
 ###############################################################################
 # Cairo
 
-if (MSVC)
-   target_include_directories(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/cairo/include)
+if (WIN32)
+   find_library(PIXMAN_LIB pixman-1 REQUIRED)
+   find_library(CAIRO_LIB cairo REQUIRED)
+   find_path(CAIRO_INCLUDE_DIR cairo/cairo.h REQUIRED)
 
-   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-      target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/cairo/lib/x64/cairo.lib)
-   else()
-	  target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/cairo/lib/x86/cairo.lib)
-   endif()
+   add_library(pixman_pixman STATIC IMPORTED)
+   set_target_properties(pixman_pixman PROPERTIES
+      IMPORTED_LOCATION ${PIXMAN_LIB}
+   )
+   add_library(pixman::pixman ALIAS pixman_pixman)
+
+   add_library(cairo_cairo STATIC IMPORTED)
+   set_target_properties(cairo_cairo PROPERTIES
+      IMPORTED_LOCATION ${CAIRO_LIB}
+   )
+   add_library(cairo::cairo ALIAS cairo_cairo)
+
+   set_target_properties(cairo_cairo PROPERTIES
+      IMPORTED_LOCATION ${CAIRO_LIB}
+   )
+   target_include_directories(cairo_cairo SYSTEM INTERFACE
+      ${CAIRO_INCLUDE_DIR}/cairo
+   )
+   target_link_libraries(cairo_cairo INTERFACE
+      pixman::pixman
+      "gdi32.lib"
+      "msimg32.lib"
+      "dwrite.lib"
+      "d2d1.lib"
+      "windowscodecs.lib"
+   )
+
+   target_link_libraries(elements PUBLIC cairo::cairo)
 elseif (APPLE)
 	# TODO: add a min version specifiction
 	pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
@@ -239,14 +264,9 @@ endif()
 ###############################################################################
 # Fontconfig
 
-if (MSVC)
-   target_include_directories(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/fontconfig/include)
-
-   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	  target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/fontconfig/x64/fontconfig.lib)
-   else()
-	  target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/fontconfig/x86/fontconfig.lib)
-   endif()
+if (WIN32)
+   find_package(Fontconfig REQUIRED)
+   target_link_libraries(elements PUBLIC Fontconfig::Fontconfig)
 elseif (APPLE)
    pkg_check_modules(fontconfig REQUIRED IMPORTED_TARGET fontconfig)
    target_include_directories(elements PUBLIC ${fontconfig_INCLUDE_DIRS})
@@ -261,13 +281,8 @@ endif()
 # Freetype
 
 if (MSVC)
-   target_include_directories(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/include)
-
-   if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-	  target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/win64/freetype.lib)
-   else()
-	  target_link_libraries(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/freetype/win32/freetype.lib)
-   endif()
+   find_package(Freetype REQUIRED)
+   target_link_libraries(elements PUBLIC Freetype::Freetype)
 elseif (APPLE)
    pkg_check_modules(freetype2 REQUIRED IMPORTED_TARGET freetype2)
    target_include_directories(elements PUBLIC ${freetype2_INCLUDE_DIRS})

@@ -1,0 +1,12 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "elements",
+    "description": "Modern GUI library",
+    "version-string": "ae7b87a8cc53258fac7d1d5a7b96da2994116dcf",
+    "builtin-baseline": "aebb363eaa0b658beb19cbefdd5aa2f9cbc14f1e",
+    "dependencies": [
+        "cairo",
+        "fontconfig",
+        "freetype"
+    ]
+}
