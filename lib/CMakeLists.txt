@@ -196,9 +196,11 @@ target_sources(infra INTERFACE FILE_SET HEADERS
       infra/include/infra/utf8_utils.hpp
 )
 
-# MSVC does not correctly report __cplusplus by default, so we need to enable it
-# see https://docs.microsoft.com/bs-cyrl-ba/cpp/build/reference/zc-cplusplus?view=msvc-160 for details
-target_compile_options(infra INTERFACE /Zc:__cplusplus)
+if(MSVC)
+   # MSVC does not correctly report __cplusplus by default, so we need to enable it
+   # see https://docs.microsoft.com/bs-cyrl-ba/cpp/build/reference/zc-cplusplus?view=msvc-160 for details
+   target_compile_options(infra INTERFACE /Zc:__cplusplus)
+endif()
 
 ###############################################################################
 
@@ -221,9 +223,11 @@ if(ELEMENTS_ENABLE_LTO)
    set_target_properties(elements PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-if (NOT MSVC)
-   find_package(PkgConfig REQUIRED)
+if(WIN32)
+  # FIXME: x64-windows shouldn't be hardcoded here
+  set(PKG_CONFIG_EXECUTABLE ${VCPKG_INSTALLED_DIR}/x64-windows/tools/pkgconf/pkgconf.exe)
 endif()
+find_package(PkgConfig QUIET REQUIRED)
 
 ###############################################################################
 # Get rid of certain warnings, and make msvc support utf-8 without adding bom
@@ -257,38 +261,8 @@ endif()
 # Cairo
 
 if (WIN32)
-   find_library(PIXMAN_LIB pixman-1 REQUIRED)
-   find_library(CAIRO_LIB cairo REQUIRED)
-   find_path(CAIRO_INCLUDE_DIR cairo/cairo.h REQUIRED)
-
-   add_library(pixman_pixman STATIC IMPORTED)
-   set_target_properties(pixman_pixman PROPERTIES
-      IMPORTED_LOCATION ${PIXMAN_LIB}
-   )
-   add_library(pixman::pixman ALIAS pixman_pixman)
-
-   add_library(cairo_cairo STATIC IMPORTED)
-   set_target_properties(cairo_cairo PROPERTIES
-      IMPORTED_LOCATION ${CAIRO_LIB}
-   )
-   add_library(cairo::cairo ALIAS cairo_cairo)
-
-   set_target_properties(cairo_cairo PROPERTIES
-      IMPORTED_LOCATION ${CAIRO_LIB}
-   )
-   target_include_directories(cairo_cairo SYSTEM INTERFACE
-      ${CAIRO_INCLUDE_DIR}/cairo
-   )
-   target_link_libraries(cairo_cairo INTERFACE
-      pixman::pixman
-      "gdi32.lib"
-      "msimg32.lib"
-      "dwrite.lib"
-      "d2d1.lib"
-      "windowscodecs.lib"
-   )
-
-   target_link_libraries(elements PUBLIC cairo::cairo)
+   pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
+   target_link_libraries(elements PUBLIC PkgConfig::cairo)
 elseif (APPLE)
 	# TODO: add a min version specifiction
 	pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
@@ -315,14 +289,14 @@ elseif (APPLE)
    target_link_libraries(elements PUBLIC "${lib_dir}/fontconfig/lib/libfontconfig.a")  # Static link
    target_link_libraries(elements PUBLIC "${lib_dir}/expat/lib/libexpat.a")            # Static link
 else()
-   pkg_check_modules(fontconfig REQUIRED IMPORTED_TARGET fontconfig)
-   target_link_libraries(elements PUBLIC PkgConfig::fontconfig)
+   find_package(Fontconfig REQUIRED)
+   target_link_libraries(elements PUBLIC Fontconfig::Fontconfig)
 endif()
 
 ###############################################################################
 # Freetype
 
-if (MSVC)
+if (WIN32)
    find_package(Freetype REQUIRED)
    target_link_libraries(elements PUBLIC Freetype::Freetype)
 elseif (APPLE)
@@ -330,9 +304,9 @@ elseif (APPLE)
    target_include_directories(elements PUBLIC ${freetype2_INCLUDE_DIRS})
    target_link_libraries(elements PUBLIC "${lib_dir}/freetype2/lib/libfreetype.a")     # Static link
    target_link_libraries(elements PUBLIC "${lib_dir}/bzip2/lib/libbz2.a")              # Static link
-elseif (UNIX OR WIN32)
-   pkg_check_modules(freetype2 REQUIRED IMPORTED_TARGET freetype2)
-   target_link_libraries(elements PUBLIC PkgConfig::freetype2)
+elseif (UNIX)
+   find_package(Freetype REQUIRED)
+   target_link_libraries(elements PUBLIC Freetype::Freetype)
 endif()
 
 ###############################################################################

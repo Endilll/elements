@@ -3,11 +3,16 @@
     "name": "elements",
     "description": "Modern GUI library",
     "version-string": "ae7b87a8cc53258fac7d1d5a7b96da2994116dcf",
-    "builtin-baseline": "8e957337289e59cb709a910d8ac80ba5eddc3348",
+    "builtin-baseline": "8e1f46de11423e5f7d2395458f5252738ffffbbd",
     "dependencies": [
         "asio",
         "cairo",
         "fontconfig",
-        "freetype"
+        "freetype",
+        {
+            "name": "pkgconf",
+            "host": true,
+            "platform": "windows"
+        }
     ]
 }
