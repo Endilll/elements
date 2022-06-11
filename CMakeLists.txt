@@ -9,6 +9,8 @@ cmake_minimum_required(VERSION 3.9.6...3.15.0)
 project(elements LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
+include(GNUInstallDirs)
+
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(ElementsConfigCommon)
@@ -24,3 +26,21 @@ if (ELEMENTS_BUILD_EXAMPLES)
    set(ELEMENTS_ROOT ${PROJECT_SOURCE_DIR})
    add_subdirectory(examples)
 endif()
+
+install(TARGETS elements infra
+   EXPORT elements 
+   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+   FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCUDEDIR}
+)
+
+install(EXPORT elements
+   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/elements
+   NAMESPACE cycfi::
+   FILE elements.cmake
+)
+
+install(FILES cmake/elements-config.cmake
+   DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/elements
+)

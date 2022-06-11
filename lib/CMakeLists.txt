@@ -61,6 +61,7 @@ set(ELEMENTS_HEADERS
    include/elements/element.hpp
    include/elements/element/align.hpp
    include/elements/element/button.hpp
+   include/elements/element/child_window.hpp
    include/elements/element/composite.hpp
    include/elements/element/dial.hpp
    include/elements/element/dynamic_list.hpp
@@ -71,6 +72,7 @@ set(ELEMENTS_HEADERS
    include/elements/element/gallery/button.hpp
    include/elements/element/gallery/caption.hpp
    include/elements/element/gallery/check_box.hpp
+   include/elements/element/gallery/child_window.hpp
    include/elements/element/gallery/thumbwheel.hpp
    include/elements/element/gallery/dialog.hpp
    include/elements/element/gallery/group.hpp
@@ -82,6 +84,8 @@ set(ELEMENTS_HEADERS
    include/elements/element/gallery/radio_button.hpp
    include/elements/element/gallery/tab.hpp
    include/elements/element/gallery/text_entry.hpp
+   include/elements/element/gallery/thumbwheel.hpp
+   include/elements/element/gallery/toggle_selector.hpp
    include/elements/element/grid.hpp
    include/elements/element/image.hpp
    include/elements/element/indirect.hpp
@@ -100,7 +104,9 @@ set(ELEMENTS_HEADERS
    include/elements/element/text.hpp
    include/elements/element/thumbwheel.hpp
    include/elements/element/tile.hpp
+   include/elements/element/tooltip.hpp
    include/elements/element/tracker.hpp
+   include/elements/element/traversal.hpp
    include/elements/support.hpp
    include/elements/support/canvas.hpp
    include/elements/support/circle.hpp
@@ -118,6 +124,7 @@ set(ELEMENTS_HEADERS
    include/elements/support/receiver.hpp
    include/elements/support/rect.hpp
    include/elements/support/resource_paths.hpp
+   include/elements/support/sender.hpp
    include/elements/support/text_utils.hpp
    include/elements/support/theme.hpp
    include/elements/view.hpp
@@ -163,15 +170,50 @@ source_group("Header Files\\elements"
    ${ELEMENTS_HEADERS}
 )
 
-add_subdirectory(infra)
+###############################################################################
+# infra
+
+add_library(infra INTERFACE)
+add_library(cycfi::infra ALIAS infra)
+
+target_include_directories(infra INTERFACE
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/infra/include>
+)
+
+target_sources(infra INTERFACE FILE_SET HEADERS
+   BASE_DIRS
+      infra/include
+   FILES
+      infra/include/infra/assert.hpp
+      infra/include/infra/buffer.hpp
+      infra/include/infra/catch.hpp
+      infra/include/infra/data_stream.hpp
+      infra/include/infra/filesystem.hpp
+      infra/include/infra/iterator_range.hpp
+      infra/include/infra/optional.hpp
+      infra/include/infra/string_view.hpp
+      infra/include/infra/support.hpp
+      infra/include/infra/utf8_utils.hpp
+)
+
+# MSVC does not correctly report __cplusplus by default, so we need to enable it
+# see https://docs.microsoft.com/bs-cyrl-ba/cpp/build/reference/zc-cplusplus?view=msvc-160 for details
+target_compile_options(infra INTERFACE /Zc:__cplusplus)
+
+###############################################################################
+
 add_library(elements)
 
 target_sources(elements
    PRIVATE ${ELEMENTS_SOURCES} ${ELEMENTS_HOST}
-   PUBLIC ${ELEMENTS_HEADERS}
+   PUBLIC FILE_SET HEADERS
+      BASE_DIRS
+         include
+      FILES
+         ${ELEMENTS_HEADERS}
 )
 
-target_include_directories(elements PUBLIC include)
+target_include_directories(elements PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 target_link_libraries(elements PUBLIC cycfi::infra)
 target_compile_features(elements PUBLIC cxx_std_17)
 
@@ -302,8 +344,10 @@ if (ELEMENTS_HOST_UI_LIBRARY STREQUAL "gtk")
 endif()
 
 ###############################################################################
-# Asio headers
-target_include_directories(elements PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/asio/asio/include)
+# Asio
+
+find_package(asio REQUIRED)
+target_link_libraries(elements PUBLIC asio::asio)
 
 ###############################################################################
 # Global options
