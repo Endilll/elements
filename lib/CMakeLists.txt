@@ -260,54 +260,21 @@ endif()
 ###############################################################################
 # Cairo
 
-if (WIN32)
-   pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
-   target_link_libraries(elements PUBLIC PkgConfig::cairo)
-elseif (APPLE)
-	# TODO: add a min version specifiction
-	pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
-   target_include_directories(elements PUBLIC ${cairo_INCLUDE_DIRS})
-   target_link_libraries(elements PUBLIC "${lib_dir}/cairo/lib/libcairo.a")            # Static link
-   target_link_libraries(elements PRIVATE "${lib_dir}/libpng/lib/libpng.a")            # Static link
-   target_link_libraries(elements PRIVATE "${lib_dir}/pixman/lib/libpixman-1.a")       # Static link
-   target_link_libraries(elements PRIVATE "${lib_dir}/zlib/lib/libz.a")                # Static link
-else()
-	# TODO: add a min version specifiction
-	pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
-	target_link_libraries(elements PUBLIC PkgConfig::cairo)
-endif()
+# TODO: add a min version specifiction
+pkg_check_modules(cairo REQUIRED IMPORTED_TARGET cairo)
+target_link_libraries(elements PUBLIC PkgConfig::cairo)
 
 ###############################################################################
 # Fontconfig
 
-if (WIN32)
-   find_package(Fontconfig REQUIRED)
-   target_link_libraries(elements PUBLIC Fontconfig::Fontconfig)
-elseif (APPLE)
-   pkg_check_modules(fontconfig REQUIRED IMPORTED_TARGET fontconfig)
-   target_include_directories(elements PUBLIC ${fontconfig_INCLUDE_DIRS})
-   target_link_libraries(elements PUBLIC "${lib_dir}/fontconfig/lib/libfontconfig.a")  # Static link
-   target_link_libraries(elements PUBLIC "${lib_dir}/expat/lib/libexpat.a")            # Static link
-else()
-   find_package(Fontconfig REQUIRED)
-   target_link_libraries(elements PUBLIC Fontconfig::Fontconfig)
-endif()
+find_package(Fontconfig REQUIRED)
+target_link_libraries(elements PUBLIC Fontconfig::Fontconfig)
 
 ###############################################################################
 # Freetype
 
-if (WIN32)
-   find_package(Freetype REQUIRED)
-   target_link_libraries(elements PUBLIC Freetype::Freetype)
-elseif (APPLE)
-   pkg_check_modules(freetype2 REQUIRED IMPORTED_TARGET freetype2)
-   target_include_directories(elements PUBLIC ${freetype2_INCLUDE_DIRS})
-   target_link_libraries(elements PUBLIC "${lib_dir}/freetype2/lib/libfreetype.a")     # Static link
-   target_link_libraries(elements PUBLIC "${lib_dir}/bzip2/lib/libbz2.a")              # Static link
-elseif (UNIX)
-   find_package(Freetype REQUIRED)
-   target_link_libraries(elements PUBLIC Freetype::Freetype)
-endif()
+find_package(Freetype REQUIRED)
+target_link_libraries(elements PUBLIC Freetype::Freetype)
 
 ###############################################################################
 # GTK (linux only)
