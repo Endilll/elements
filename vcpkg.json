@@ -3,10 +3,13 @@
     "name": "elements",
     "description": "Modern GUI library",
     "version-string": "ae7b87a8cc53258fac7d1d5a7b96da2994116dcf",
-    "builtin-baseline": "8e1f46de11423e5f7d2395458f5252738ffffbbd",
+    "builtin-baseline": "611804964272028b346369caac76dd35a5e084cb",
     "dependencies": [
         "asio",
-        "cairo",
+        {
+            "name": "cairo",
+            "platform": "!linux"
+        },
         "fontconfig",
         "freetype",
         {
